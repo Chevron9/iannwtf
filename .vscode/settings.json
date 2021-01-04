@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "C:\\Users\\sigil\\.conda\\envs\\iannwtf\\python.exe",
+    "python.pythonPath": "F:\\Winpy\\python-3.7.2.amd64\\python.exe",
     "python.dataScience.jupyterServerURI": "local",
     "jupyter.jupyterServerType": "local"
 }
