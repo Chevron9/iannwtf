@@ -131,3 +131,7 @@ dmypy.json
 iann.lnk
 4/data/
 */data/
+project/pendulum/ddpg/actor_ddpg.h5
+project/pendulum/ddpg/critic_ddpg.h5
+project/pendulum/ddpg/target_actor_ddpg.h5
+project/pendulum/ddpg/target_critic_ddpg.h5

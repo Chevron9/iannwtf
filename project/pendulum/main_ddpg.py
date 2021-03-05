@@ -36,7 +36,7 @@ if __name__ == '__main__':
         score = 0
         while not done:
             action = agent.choose_action(observation, evaluate)
-            agent.noise = 0.5 * np.exp(-i/25)
+            agent.noise = agent.starting_noise * np.exp(-i/25)
             observation_, reward, done, info = env.step(action)
             score += reward
             agent.remember(observation, action, reward, observation_, done)

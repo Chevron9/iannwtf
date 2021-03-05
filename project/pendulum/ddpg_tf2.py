@@ -15,6 +15,7 @@ class Agent:
         self.batch_size = batch_size
         self.n_actions = n_actions
         self.noise = noise
+        self.starting_noise = noise
         self.max_action = env.action_space.high[0]
         self.min_action = env.action_space.low[0]
         print(self.max_action, self.min_action)
@@ -72,10 +73,6 @@ class Agent:
                     mean=0.0, stddev=self.noise)
         # note that if the environment has an action > 1, we have to multiply by
         # max action at some point
-
-
-        #self.noise =  self.noise * np.exp(25)
-        #print(self.noise)
 
         actions = tf.clip_by_value(actions, self.min_action, self.max_action)
 
