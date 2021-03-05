@@ -3,7 +3,7 @@ import numpy as np
 from ddpg_tf2 import Agent
 
 
-env = gym.make('BipedalWalkerHardcore-v3')
+env = gym.make('BipedalWalker-v3')
 #render the result
 observation = env.reset()
 agent = Agent(input_dims=env.observation_space.shape, env=env,
