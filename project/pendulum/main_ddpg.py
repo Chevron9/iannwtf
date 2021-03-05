@@ -10,7 +10,7 @@ import time
 if __name__ == '__main__':
     t = time.localtime()
     current_time = time.strftime("%H:%M:%S", t)
-    print(f"Training started at {current_time}.")
+    print(f"----------------- Training started at {current_time}. -------------------")
 
     env = gym.make('BipedalWalker-v3')
     agent = Agent(input_dims=env.observation_space.shape, env=env,
@@ -69,4 +69,4 @@ if __name__ == '__main__':
 t2 = time.localtime()
 current_time2 = time.strftime("%H:%M:%S", t)
 t_delta = time.mktime(t2)-time.mktime(t)
-print(f"Training ended at {current_time}. Duration was {t_delta/60:.2f} minutes.")
+print(f"----------------- Training ended at {current_time}. Duration was {t_delta/60:.2f} minutes. -----------------")
