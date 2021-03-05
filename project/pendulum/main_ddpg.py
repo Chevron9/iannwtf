@@ -3,6 +3,9 @@ import numpy as np
 from ddpg_tf2 import Agent
 from utils import plot_learning_curve
 
+
+
+
 if __name__ == '__main__':
     env = gym.make('BipedalWalker-v3')
     agent = Agent(input_dims=env.observation_space.shape, env=env,
