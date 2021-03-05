@@ -2,15 +2,20 @@ import gym
 import numpy as np
 from ddpg_tf2 import Agent
 from utils import plot_learning_curve
+import time
 
 
 
 
 if __name__ == '__main__':
+    t = time.localtime()
+    current_time = time.strftime("%H:%M:%S", t)
+    print(f"Training started at {current_time}.")
+
     env = gym.make('BipedalWalker-v3')
     agent = Agent(input_dims=env.observation_space.shape, env=env,
             n_actions=env.action_space.shape[0])
-    n_games = 1000
+    n_games = 5000
 
     figure_file = 'walker.png'
 
@@ -61,3 +66,7 @@ if __name__ == '__main__':
         x = [i+1 for i in range(n_games)]
         plot_learning_curve(x, score_history, figure_file)
 
+t2 = time.localtime()
+current_time2 = time.strftime("%H:%M:%S", t)
+t_delta = time.mktime(t2)-time.mktime(t)
+print(f"Training ended at {current_time}. Duration was {t_delta/60:.2f} minutes.")
