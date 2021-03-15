@@ -44,7 +44,12 @@ if __name__ == '__main__':
         score = 0
         while not done:
             action = agent.choose_action(observation, evaluate)
-            agent.noise = agent.starting_noise * np.exp(-i/25)
+            
+            if evaluate == False:
+                agent.noise = agent.starting_noise * np.exp(-i/2500)
+            else:
+                agent.noise = 0
+            
             observation_, reward, done, info = env.step(action)
             score += reward
             agent.remember(observation, action, reward, observation_, done)
@@ -69,4 +74,4 @@ if __name__ == '__main__':
 t2 = time.localtime()
 current_time2 = time.strftime("%H:%M:%S", t)
 t_delta = time.mktime(t2)-time.mktime(t)
-print(f"----------------- Training ended at {current_time}. Duration was {t_delta/60:.2f} minutes. -----------------")
+print(f"----------------- Training ended at {current_time}. Duration was {t_delta/60:.2f} minutes.-----------------")

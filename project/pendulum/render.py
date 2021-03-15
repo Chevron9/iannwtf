@@ -3,11 +3,11 @@ import numpy as np
 from ddpg_tf2 import Agent
 
 
-env = gym.make('BipedalWalker-v3')
+env = gym.make('BipedalWalkerHardcore-v3')
 #render the result
 observation = env.reset()
 agent = Agent(input_dims=env.observation_space.shape, env=env,
-        n_actions=env.action_space.shape[0])
+        n_actions=env.action_space.shape[0],noise = 0)
 load_checkpoint = True
 
 if load_checkpoint:
@@ -25,7 +25,7 @@ else:
     evaluate = False
 
 
-for _ in range(1000):
+for _ in range(2000):
     env.render()
     action = agent.choose_action(observation, True) # your agent here (this takes random actions)
     observation, reward, done, info = env.step(action)
