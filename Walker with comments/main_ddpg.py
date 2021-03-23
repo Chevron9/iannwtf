@@ -7,7 +7,7 @@ from plot import plot_learning_curve
 if __name__ == '__main__':
 
     #initialize the environment for the agent and initialize the agent
-    tf.debugging.set_log_device_placement(True)
+    #tf.debugging.set_log_device_placement(True)
     env = gym.make('BipedalWalker-v3')
     noise = 0.4
     agent = Agent(alpha=0.00005, beta=0.0005, input_dims=[24], tau=0.001, env=env,
