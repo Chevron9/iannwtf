@@ -2,10 +2,15 @@ import gym
 import tensorflow as tf
 import numpy as np
 import time
+import sys
 
 # modules
 from agent import Agent
 from plot import plot_learning_curve
+
+print(f"TF version: {tf.version.VERSION}")
+print(f"Python version {sys.version}")
+
 
 
 if __name__ == '__main__':
@@ -21,13 +26,18 @@ if __name__ == '__main__':
     print(f"\n----------------- Training started at {current_time}. -------------------\ncheckpoint: {load_checkpoint}")
 
     #initialize the environment for the agent and initialize the agent
+    
     #tf.debugging.set_log_device_placement(True)
     env = gym.make('BipedalWalker-v3')
     #env = gym.make('BipedalWalkerHardcore-v3')
+    n_actions = env.action_space.shape[0]
+
+    print(env.action_space)
+
     noise = 0.4
     # NEW batch 128
-    agent = Agent(alpha=0.00005, beta=0.0005, input_dims=[24], tau=0.001, env=env,
-                  batch_size=128, dense1=512, dense2=512, n_actions=4, noise = noise)
+    agent = Agent(alpha=0.00005, beta=0.0005, input_dims=env.observation_space.shape, tau=0.001, env=env,
+                  batch_size=128, dense1=512, dense2=512, n_actions=n_actions, noise = noise)
 
 
     episodes = 250 #250
@@ -41,6 +51,8 @@ if __name__ == '__main__':
 
 
     #initializes the model with one random sample batch if model are loaded
+    #you can't load an empty model for some reason
+    #these are all dummy variables etc until load_models overwrites them
     if load_checkpoint:
         n_steps = 0
         while n_steps <= agent.batch_size:
@@ -111,19 +123,21 @@ if __name__ == '__main__':
             steps_per_score = score/steps
 
             print(f"{current_time} \n"
-            f'Episode: **{i}**/{episodes}, Score: {score:.0f} (Δ{score-last_score:5.1f}) \n'
-            f'Average score: {avg_score:.0f} (Δ{avg_score-last_avg_score:5.1f})\n'
+            f'Episode: **{i}**/{episodes}, Score: {score:.0f} (Δ{score-last_score:5.1f})\n'
+            f'Average score: {avg_score:.1f} (Δ{avg_score-last_avg_score:5.2f})\n'
             f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:.2f}),', 
-            f'ETA: {ETA_avg/60:.0f}m ({ETA_min/60:.0f}m-{ETA_max/60:.0f}m) \n'
-            f'Steps: {steps}. Time per step: {per_step:.1e}s. Reward per step: {steps_per_score:.2f}. \n' 
-            f'It has been {i - last_save} episode(s) since the model was last saved, with a score of {best_score:.0f} (Δ{avg_score-best_score:.0f}). \n')
+            f'ETA: {ETA_avg/60:.0f}m ({ETA_min/60:.0f}m-{ETA_max/60:.0f}m)\n'
+            f'Steps: {steps}. Time per step: {per_step:.1e}s. Reward per step: {steps_per_score:.2f}.\n' 
+            f'It has been {i - last_save} episode(s) since the model was last saved, with a score of {best_score:.0f} (Δ{avg_score-best_score:.0f}).\n')
 
             last_score = score
             last_avg_score = avg_score
+            x = [j+1 for j in range(current_episode+1)]
+            plot_learning_curve(x, score_history, figure_file)
             
     except KeyboardInterrupt:
         episodes = current_episode
-        print("Shutting down training.")
+        print("Manually shutting down training.")
     
     #plots the whole score history
     if not load_checkpoint:

@@ -26,22 +26,25 @@ class Agent:
 
         #initializes the Replaybuffer which stores what the agents does
         self.memory = ReplayBuffer(max_size, input_dims, n_actions)
+        
         # initializing the Networks with given parameters
         # target_actor and target_critic are just initialized as the actor and
         # critic networks
         self.actor = ActorNetwork(n_actions=n_actions, name='actor', dense1 = dense1, dense2 = dense2)
-        self.critic = CriticNetwork(name='critic',  dense1 = dense1, dense2 = dense2)
         self.target_actor = ActorNetwork(n_actions=n_actions, name='target_actor',  dense1 = dense1, dense2 = dense2)
+
+        self.critic = CriticNetwork(name='critic',  dense1 = dense1, dense2 = dense2)
         self.target_critic = CriticNetwork(name='target_critic', dense1 = dense1, dense2 = dense2)
 
 
         #compile the networks with learningrates
         self.actor.compile(optimizer=Adam(learning_rate=alpha))
-        self.critic.compile(optimizer=Adam(learning_rate=beta))
         self.target_actor.compile(optimizer=Adam(learning_rate=alpha))
+        
+        self.critic.compile(optimizer=Adam(learning_rate=beta))
         self.target_critic.compile(optimizer=Adam(learning_rate=beta))
 
-        self.update_network_parameters(tau=1)
+        self.update_network_parameters(tau=1) #Hard copy, since this is the initialization
 
     #updates the target networks
     #soft copies the target and actor network dependent on tau
