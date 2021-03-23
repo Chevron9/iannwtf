@@ -20,8 +20,10 @@ if __name__ == '__main__':
     load_checkpoint = False
 
     #Housekeeping variables
-    last_score = last_avg_score = 0
-    avg_delta = avg_steps = []
+    last_score = 0
+    last_avg_score = 0
+    avg_delta = []
+    avg_steps = []
 
     t = t_start = time.localtime()
     current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
@@ -38,8 +40,6 @@ if __name__ == '__main__':
     env = gym.make('BipedalWalker-v3')
     #env = gym.make('BipedalWalkerHardcore-v3')
     n_actions = env.action_space.shape[0]
-
-    print(env.action_space)
 
     noise = 0.4
     # NEW batch 128
@@ -133,7 +133,7 @@ if __name__ == '__main__':
             f'Episode: **{i}**/{episodes}, Score: {score:.0f} (Δ{score-last_score:5.1f})\n'
             f'Average score: {avg_score:.1f} (Δ{avg_score-last_avg_score:5.2f})\n'
             f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:.2f}),', 
-            f'ETA: {timespan_format(ETA_avg/60)} ({timespan_format(ETA_min/60)} to {timespan_format(ETA_max/60)})\n'
+            f'ETA: {timespan_format(ETA_avg)} ({timespan_format(ETA_min)} to {timespan_format(ETA_max)})\n'
             f'Steps: {steps}. Time per step: {per_step:.1e}s. Reward per step: {steps_per_score:.2f}.\n' 
             f'It has been {i - last_save} episode(s) since the model was last saved, with a score of {best_score:.0f} (Δ{avg_score-best_score:.0f}).\n')
 
@@ -144,6 +144,9 @@ if __name__ == '__main__':
 
             with writer.as_default():
                 tf.summary.scalar('Average Score', avg_score, step=i)
+                tf.summary.scalar('ETA', ETA_avg, step=i)
+                tf.summary.scalar('Calculation time per step', per_step, step=i)
+                tf.summary.scalar('Calculation time per episode', t_delta, step=i)
                 writer.flush()
                 
 
