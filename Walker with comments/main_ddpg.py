@@ -91,7 +91,7 @@ if __name__ == '__main__':
         t = t_new
 
         print(f"{current_time} \n"
-        f'Episode: {i}, Score: {score:.0f} ({score-last_score:.1f})\n'
+        f'Episode: **{i}**, Score: {score:.0f} ({score-last_score:.1f})\n'
         f'Average score: {avg_score:.0f} ({avg_score-last_avg:.1f})\n'
         f'Episode time: {t_delta:.0f}s \n')
 
