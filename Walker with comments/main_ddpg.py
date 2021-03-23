@@ -7,13 +7,18 @@ import time
 from agent import Agent
 from plot import plot_learning_curve
 
-last_score = last_avg = 0
+#Housekeeping variables
+last_score = last_avg_score = 0
+avg_delta = []
+
+
+
 
 
 if __name__ == '__main__':
     t = t_start = time.localtime()
     current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
-    print(f"----------------- Training started at {current_time}. -------------------")
+    print(f"\n----------------- Training started at {current_time}. -------------------\n")
 
     #initialize the environment for the agent and initialize the agent
     #tf.debugging.set_log_device_placement(True)
@@ -23,7 +28,7 @@ if __name__ == '__main__':
                   batch_size=64, dense1=512, dense2=512, n_actions=4, noise = noise)
 
 
-    episodes = 6000 #250
+    episodes = 250 #250
 
     #where the final plot is saved
     figure_file = f'plots/walker{current_time.replace(":","_")}.png'
@@ -51,52 +56,73 @@ if __name__ == '__main__':
         evaluate = False
 
     #main learning loop
-    for i in range(episodes):
-        observation = env.reset()
-        done = False
-        score = 0
-        #regulates the noise over the course of training as exponential
-        #decay to get smaller noise at the end, the noise is the
-        #standarddeviation of a normal distribution
-        #(numbers from trial and error)
-        agent.noise = noise * np.exp(-i/1500)
+    try:
+        for i in range(episodes):
+            current_episode = i
+            observation = env.reset()
+            done = False
+            score = 0
+            
+            #regulates the noise over the course of training as exponential
+            #decay to get smaller noise at the end, the noise is the
+            #standarddeviation of a normal distribution
+            #(numbers from trial and error)
+            agent.noise = noise * np.exp(-i/1500)
 
-        #while the environment is running the model chooses actions, saves states,
-        #rewards, actions and observations in the buffer and trains the networks
-        #on them
-        while not done:
-            action = agent.choose_action(observation, evaluate)
+            #while the environment is running the model chooses actions, saves states,
+            #rewards, actions and observations in the buffer and trains the networks
+            #on them
+            steps = 0
+            while not done:
+                action = agent.choose_action(observation, evaluate)
 
-            observation_, reward, done, info = env.step(action)
-            score += reward
-            agent.remember(observation, action, reward, observation_, done)
-            if not load_checkpoint:
-                agent.learn()
+                observation_, reward, done, info = env.step(action)
+                steps += 1
+                score += reward
+                agent.remember(observation, action, reward, observation_, done)
+                if not load_checkpoint:
+                    agent.learn()
 
-            #saves previous observation
-            observation = observation_
+                #saves previous observation
+                observation = observation_
 
-        score_history.append(score)
-        avg_score = np.mean(score_history[-100:])
+            score_history.append(score)
+            avg_score = np.mean(score_history[-100:])
 
-        #saves the model if the average score is better than the best previous
-        if avg_score > best_score:
-            best_score = avg_score
-            if not load_checkpoint:
-                agent.save_models()
+            #saves the model if the average score is better than the best previous
+            if avg_score > best_score:
+                best_score = avg_score
+                if not load_checkpoint:
+                    agent.save_models()
 
-        t_new = time.localtime()
-        current_time = time.strftime("%H:%M:%S", t)
-        t_delta = time.mktime(t_new)-time.mktime(t)
-        t = t_new
+            #calculating episode time etc.
+            t_new = time.localtime()
+            current_time = time.strftime("%H:%M:%S", t)
+            t_delta = time.mktime(t_new)-time.mktime(t)
+            t = t_new
+            avg_delta.append(t_delta)
+            avg_delta_mean = np.mean(avg_delta)
+            avg_delta_std = np.var(avg_delta)
 
-        print(f"{current_time} \n"
-        f'Episode: **{i}**, Score: {score:.0f} ({score-last_score:.1f})\n'
-        f'Average score: {avg_score:.0f} ({avg_score-last_avg:.1f})\n'
-        f'Episode time: {t_delta:.0f}s \n')
+            ETA_avg = (episodes-i)*avg_delta_mean
+            ETA_min = (episodes-i)*max((avg_delta_mean-avg_delta_std),min(avg_delta))
+            ETA_max = (episodes-i)*(avg_delta_mean+avg_delta_std)
 
-        last_score = score
-        last_avg = avg_score
+            per_step = t_delta/steps
+
+            print(f"{current_time} \n"
+            f'Episode: **{i}**/{episodes}, Score: {score:.0f} ({score-last_score:.1f}), Steps: {steps}\n'
+            f'Average score: {avg_score:.0f} ({avg_score-last_avg_score:.1f})\n'
+            f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:.2f}),', 
+            f'ETA {ETA_avg/60:.0f}m ({ETA_min/60:.0f}m-{ETA_max/60:.0f}m) \n'
+            f'{per_step:.1e}s per step \n')
+
+            last_score = score
+            last_avg_score = avg_score
+            
+    except KeyboardInterrupt:
+        episodes = current_episode
+        print("Shutting down training.")
     
     #plots the whole score history
     if not load_checkpoint:
