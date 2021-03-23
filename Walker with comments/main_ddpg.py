@@ -1,10 +1,19 @@
 import gym
 import tensorflow as tf
 import numpy as np
+import time
+
+# modules
 from agent import Agent
 from plot import plot_learning_curve
 
+last_score = last_avg = 0
+
+
 if __name__ == '__main__':
+    t = t_start = time.localtime()
+    current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
+    print(f"----------------- Training started at {current_time}. -------------------")
 
     #initialize the environment for the agent and initialize the agent
     #tf.debugging.set_log_device_placement(True)
@@ -17,7 +26,7 @@ if __name__ == '__main__':
     episodes = 6000 #250
 
     #where the final plot is saved
-    figure_file = 'plots/walker.png'
+    figure_file = f'plots/walker{current_time.replace(":","_")}.png'
 
     #set bestscore to minimum
     best_score = env.reward_range[0]
@@ -76,8 +85,25 @@ if __name__ == '__main__':
             if not load_checkpoint:
                 agent.save_models()
 
-        print('Episode: ', i, 'Last score: %.1f' % score, 'Average score: %.1f' % avg_score)
+        t_new = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        t_delta = time.mktime(t_new)-time.mktime(t)
+        t = t_new
+
+        print(f"{current_time} \n"
+        f'Episode: {i}, Score: {score:.0f} ({score-last_score:.1f})\n'
+        f'Average score: {avg_score:.0f} ({avg_score-last_avg:.1f})\n'
+        f'Episode time: {t_delta:.0f}s \n')
+
+        last_score = score
+        last_avg = avg_score
+    
     #plots the whole score history
     if not load_checkpoint:
         x = [i+1 for i in range(episodes)]
         plot_learning_curve(x, score_history, figure_file)
+
+t2 = time.localtime()
+current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t2)
+t_delta = time.mktime(t2)-time.mktime(t_start)
+print(f"----------------- Training ended at {current_time}. Duration was {t_delta/60:.2f} minutes.-----------------")
