@@ -7,6 +7,7 @@ import sys
 # modules
 from agent import Agent
 from plot import plot_learning_curve
+from time_converter import timespan_format
 
 print(f"TF version: {tf.version.VERSION}")
 print(f"Python version {sys.version}")
@@ -14,6 +15,7 @@ print(f"Python version {sys.version}")
 
 
 if __name__ == '__main__':
+
     #for the case you just want to load a previous model
     load_checkpoint = False
 
@@ -24,6 +26,11 @@ if __name__ == '__main__':
     t = t_start = time.localtime()
     current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
     print(f"\n----------------- Training started at {current_time}. -------------------\ncheckpoint: {load_checkpoint}")
+
+
+    log_dir = 'logs/' + current_time.replace(":","_")
+    writer = tf.summary.create_file_writer(log_dir)
+
 
     #initialize the environment for the agent and initialize the agent
     
@@ -126,7 +133,7 @@ if __name__ == '__main__':
             f'Episode: **{i}**/{episodes}, Score: {score:.0f} (Δ{score-last_score:5.1f})\n'
             f'Average score: {avg_score:.1f} (Δ{avg_score-last_avg_score:5.2f})\n'
             f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:.2f}),', 
-            f'ETA: {ETA_avg/60:.0f}m ({ETA_min/60:.0f}m-{ETA_max/60:.0f}m)\n'
+            f'ETA: {timespan_format(ETA_avg/60)} ({timespan_format(ETA_min/60)} to {timespan_format(ETA_max/60)})\n'
             f'Steps: {steps}. Time per step: {per_step:.1e}s. Reward per step: {steps_per_score:.2f}.\n' 
             f'It has been {i - last_save} episode(s) since the model was last saved, with a score of {best_score:.0f} (Δ{avg_score-best_score:.0f}).\n')
 
@@ -134,6 +141,13 @@ if __name__ == '__main__':
             last_avg_score = avg_score
             x = [j+1 for j in range(current_episode+1)]
             plot_learning_curve(x, score_history, figure_file)
+
+            with writer.as_default():
+                tf.summary.scalar('Average Score', avg_score, step=i)
+                writer.flush()
+                
+
+
             
     except KeyboardInterrupt:
         episodes = current_episode
