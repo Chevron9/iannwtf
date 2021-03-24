@@ -7,7 +7,7 @@ def timespan_format(timespan):
     time = f"{h:02}:{m:02}:{s:02}"
     if h_full > 24:
         d = timespan // (60*60*24)
-        h = (timespan % (60*60*24)) // 60
+        h = (timespan % (60*60*24)) // 60*60
         time = f"{d:02}:{h:02}:{m:02}:{s:02}"
     #print(time)
     return time

@@ -17,11 +17,12 @@ print(f"Python version {sys.version}")
 if __name__ == '__main__':
 
     #for the case you just want to load a previous model
-    load_checkpoint = False
+    load_checkpoint = True
 
     #Housekeeping variables
     last_score = 0
     last_avg_score = 0
+    last_save = 0
     avg_delta = []
     avg_steps = []
 
@@ -47,7 +48,7 @@ if __name__ == '__main__':
                   batch_size=128, dense1=512, dense2=512, n_actions=n_actions, noise = noise)
 
 
-    episodes = 250 #250
+    episodes = 5000 #250
 
     #where the final plot is saved
     figure_file = f'plots/walker{current_time.replace(":","_")}.png'
@@ -74,6 +75,16 @@ if __name__ == '__main__':
     #main learning loop
     try:
         for i in range(episodes):
+            if i == 3:
+                tf.profiler.experimental.server.start(6009)
+                print("profiler started")
+                # launch tensorboard with "tensorboard --logdir logs"
+                # capture profile
+            #if i == 13:
+            #    tf.profiler.experimental.stop
+            #    print("profiler stopped")
+
+
             current_episode = i
             observation = env.reset()
             done = False
@@ -108,9 +119,8 @@ if __name__ == '__main__':
             #saves the model if the average score is better than the best previous
             if avg_score > best_score:
                 best_score = avg_score
-                if not load_checkpoint:
-                    agent.save_models()
-                    last_save = current_episode
+                agent.save_models()
+                last_save = current_episode
 
             #calculating and giving some info on training progress
             t_new = time.localtime()
@@ -125,17 +135,17 @@ if __name__ == '__main__':
             ETA_min = (episodes-i)*max((avg_delta_mean-avg_delta_std),min(avg_delta))
             ETA_max = (episodes-i)*(avg_delta_mean+avg_delta_std)
 
-            avg_steps.append(steps) #unused for now
+            avg_steps.append(steps)
             per_step = t_delta/steps
             steps_per_score = score/steps
 
             print(f"{current_time} \n"
-            f'Episode: **{i}**/{episodes}, Score: {score:.0f} (Δ{score-last_score:5.1f})\n'
+            f'Episode: **{i+1}**/{episodes}, Score: {score:.0f} (Δ{score-last_score:5.1f})\n'
             f'Average score: {avg_score:.1f} (Δ{avg_score-last_avg_score:5.2f})\n'
-            f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:.2f}),', 
+            f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:4.2f}),', 
             f'ETA: {timespan_format(ETA_avg)} ({timespan_format(ETA_min)} to {timespan_format(ETA_max)})\n'
             f'Steps: {steps}. Time per step: {per_step:.1e}s. Reward per step: {steps_per_score:.2f}.\n' 
-            f'It has been {i - last_save} episode(s) since the model was last saved, with a score of {best_score:.0f} (Δ{avg_score-best_score:.0f}).\n')
+            f'It has been {i - last_save} episode(s) since the model was last saved, with a score of {best_score:.0f} (Δ{avg_score-best_score:2.2f}).\n')
 
             last_score = score
             last_avg_score = avg_score
@@ -147,7 +157,9 @@ if __name__ == '__main__':
                 tf.summary.scalar('ETA', ETA_avg, step=i)
                 tf.summary.scalar('Calculation time per step', per_step, step=i)
                 tf.summary.scalar('Calculation time per episode', t_delta, step=i)
-                writer.flush()
+                tf.summary.scalar('Steps', steps, step=i)
+                if ((i+1) % 50) == 0: #writer.flush has a large performance impact, so only do it every x episodes
+                    writer.flush()
                 
 
 
