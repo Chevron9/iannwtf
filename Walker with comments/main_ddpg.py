@@ -173,9 +173,8 @@ if __name__ == '__main__':
         print("Manually shutting down training.")
     
     #plots the whole score history
-    if not load_checkpoint:
-        x = [i+1 for i in range(episodes)]
-        plot_learning_curve(x, score_history, figure_file)
+    x = [i+1 for i in range(episodes)]
+    plot_learning_curve(x, score_history, figure_file)
 
 t2 = time.localtime()
 current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t2)
