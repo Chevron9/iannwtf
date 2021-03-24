@@ -40,6 +40,8 @@ if __name__ == '__main__':
     #tf.debugging.set_log_device_placement(True)
     env = gym.make('BipedalWalker-v3')
     #env = gym.make('BipedalWalkerHardcore-v3')
+
+
     n_actions = env.action_space.shape[0]
 
     noise = 0.4
@@ -72,7 +74,9 @@ if __name__ == '__main__':
         agent.learn()
         agent.load_models()
 
-    #main learning loop
+    # ---------------------------------------
+    # main learning loop
+    # ---------------------------------------
     try:
         for i in range(episodes):
             if i == 3:
@@ -107,8 +111,7 @@ if __name__ == '__main__':
                 steps += 1
                 score += reward
                 agent.remember(observation, action, reward, observation_, done)
-                if not load_checkpoint:
-                    agent.learn()
+                agent.learn()
 
                 #saves previous observation
                 observation = observation_
@@ -149,8 +152,7 @@ if __name__ == '__main__':
 
             last_score = score
             last_avg_score = avg_score
-            x = [j+1 for j in range(current_episode+1)]
-            plot_learning_curve(x, score_history, figure_file)
+            
 
             with writer.as_default():
                 tf.summary.scalar('Average Score', avg_score, step=i)
@@ -158,8 +160,10 @@ if __name__ == '__main__':
                 tf.summary.scalar('Calculation time per step', per_step, step=i)
                 tf.summary.scalar('Calculation time per episode', t_delta, step=i)
                 tf.summary.scalar('Steps', steps, step=i)
-                if ((i+1) % 50) == 0: #writer.flush has a large performance impact, so only do it every x episodes
+                if ((i+1) % 50) == 0: #writer.flush and learning plot has a large performance impact, so only do it every 50 episodes
                     writer.flush()
+                    x = [j+1 for j in range(current_episode+1)]
+                    plot_learning_curve(x, score_history, figure_file)
                 
 
 

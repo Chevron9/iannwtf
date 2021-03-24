@@ -85,9 +85,12 @@ class Agent:
         self.target_critic.load_weights(self.target_critic.checkpoint_file)
 
     #choose_action with help of the actor network, adds noise if it for training
+    @tf.function
     def choose_action(self, observation, evaluate=False):
         state = tf.convert_to_tensor([observation], dtype=tf.float32)
         actions = self.actor(state)
+        
+        # inject eploration noise
         if not evaluate:
 
             actions += tf.random.normal(shape=[self.n_actions],
@@ -126,7 +129,7 @@ class Agent:
             #critic network evaluate the actual states and actions the model took
             critic_value = tf.squeeze(self.critic(states, actions), 1)
 
-            #target gives says what value of the action in a certain state should
+            #target says what value of the action in a certain state should
             #be like
             target = rewards + self.gamma*critic_value_*(1-done)
 
@@ -154,12 +157,12 @@ class Agent:
             #the loss is a average of all the losses
             actor_loss = tf.math.reduce_mean(actor_loss)
 
-        #gradients of the loss in respect to the parameters of the critic network
+        #gradients of the loss in respect to the parameters of the actor network
         actor_network_gradient = tape.gradient(actor_loss,
                                     self.actor.trainable_variables)
 
 
-        #optimizing the network the gradients
+        #optimizing the network gradients
         self.actor.optimizer.apply_gradients(zip(
             actor_network_gradient, self.actor.trainable_variables))
 
