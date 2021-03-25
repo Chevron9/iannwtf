@@ -129,9 +129,9 @@ dmypy.json
 .pyre/
 
 iann.lnk
-4/data/
-*/data/
-*/tmp/
-Walker with comments/.vscode/settings.json
-Walker with comments/plots/
-Walker with comments/logs/
+data/
+tmp/
+.vscode/
+plots/
+logs/
+
