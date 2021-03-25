@@ -2,8 +2,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.optimizers import Adam
-from replaybuffer import ReplayBuffer
-from networks import ActorNetwork, CriticNetwork
+from .replaybuffer import ReplayBuffer
+from .networks import ActorNetwork, CriticNetwork
 
 # the agent class where the all the important parameters and systems of the
 # model are managed

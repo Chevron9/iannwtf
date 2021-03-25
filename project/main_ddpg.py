@@ -1,16 +1,20 @@
+import sys
+print(f"Python version {sys.version}")
+print(sys.path)
+
+import os 
+print(f"Current working directory is {os.getcwd()}")
+
 import gym
 import tensorflow as tf
+print(f"TF version: {tf.version.VERSION}")
 import numpy as np
 import time
-import sys
 
 # modules
-from agent import Agent
-from plot import plot_learning_curve
-from time_converter import timespan_format
-
-print(f"TF version: {tf.version.VERSION}")
-print(f"Python version {sys.version}")
+from ddpg.agent import Agent
+from utilities.plot import plot_learning_curve
+from utilities.time_converter import timespan_format
 
 
 
@@ -30,8 +34,13 @@ if __name__ == '__main__':
     current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
     print(f"\n----------------- Training started at {current_time}. -------------------\ncheckpoint: {load_checkpoint}")
 
+    module_dir = "ddpg/"
+    figure_dir = module_dir+f'plots/'
+    figure_file = figure_dir+f'walker{current_time.replace(":","_")}.png'
 
-    log_dir = 'logs/' + current_time.replace(":","_")
+    log_dir = module_dir+'logs/' + current_time.replace(":","_")
+    
+    #Tensorboard writer  
     writer = tf.summary.create_file_writer(log_dir)
 
 
@@ -52,8 +61,7 @@ if __name__ == '__main__':
 
     episodes = 5000 #250
 
-    #where the final plot is saved
-    figure_file = f'plots/walker{current_time.replace(":","_")}.png'
+
 
     #set bestscore to minimum
     best_score = env.reward_range[0]

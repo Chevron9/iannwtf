@@ -11,7 +11,7 @@ from tensorflow.keras.layers import Dense
 #the action in the given state
 class CriticNetwork(keras.Model):
     def __init__(self, dense1=512, dense2=512,
-            name='critic', chkpt_dir='tmp/ddpg'):
+            name='critic', chkpt_dir='ddpg/tmp/'):
         super(CriticNetwork, self).__init__()
         #Dimensions of the dense layers
         self.dense1 = dense1
@@ -64,7 +64,7 @@ class CriticNetwork(keras.Model):
 #distribution over all possible actions
 class ActorNetwork(keras.Model):
     def __init__(self, dense1=512, dense2=512, n_actions=4, name='actor',
-            chkpt_dir='tmp/ddpg'):
+            chkpt_dir='ddpg/tmp/'):
         super(ActorNetwork, self).__init__()
         self.dense1 = dense1
         self.dense2 = dense2

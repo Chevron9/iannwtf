@@ -1,6 +1,6 @@
 import gym
 import numpy as np
-from agent import Agent
+from .agent import Agent
 
 
 #script to render the result
