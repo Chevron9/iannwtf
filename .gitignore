@@ -129,5 +129,9 @@ dmypy.json
 .pyre/
 
 iann.lnk
-4/data/
-*/data/
+data/
+tmp/
+.vscode/
+plots/
+logs/
+
