@@ -34,7 +34,7 @@ if __name__ == '__main__':
     current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
     print(f"\n----------------- Training started at {current_time}. -------------------\ncheckpoint: {load_checkpoint}")
 
-    module_dir = "ddpg/"
+    module_dir = "td3/"
     figure_dir = module_dir+f'plots/'
     figure_file = figure_dir+f'walker{current_time.replace(":","_")}.png'
 

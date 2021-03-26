@@ -7,11 +7,12 @@ from .agent import Agent
 
 #environment the agent is in
 env = gym.make('BipedalWalker-v3')
+module_dir = "ddpg/"
 
 observation = env.reset()
 
 agent = Agent(input_dims=env.observation_space.shape, env=env,
-        n_actions=env.action_space.shape[0])
+        n_actions=env.action_space.shape[0], module_dir = module_dir)
 
 #timesteps that are rendered
 timesteps = 300
