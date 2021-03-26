@@ -149,7 +149,7 @@ class Agent:
         actions = tf.convert_to_tensor(action, dtype=tf.float32)
 
         #update critic network
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
 
             #call target actor to simulate which action to take
             target_actions = self.target_actor(states_)

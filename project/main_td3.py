@@ -12,7 +12,7 @@ import numpy as np
 import time
 
 # modules
-from ddpg.agent import Agent
+from td3.agent import Agent
 from utilities.plot import plot_learning_curve
 from utilities.time_converter import timespan_format
 
@@ -185,6 +185,7 @@ if __name__ == '__main__':
 
             with writer.as_default():
                 tf.summary.scalar('Average Score', avg_score, step=i)
+                tf.summary.scalar('Score', score, step=i)
                 tf.summary.scalar('ETA', ETA_avg, step=i)
                 tf.summary.scalar('Calculation time per step', per_step, step=i)
                 tf.summary.scalar('Calculation time per episode', t_delta, step=i)

@@ -1,10 +1,10 @@
 import gym
 import numpy as np
 
-#from td3.agent import Agent
-from ddpg.agent import Agent
-module_dir = "ddpg/"
-#module_dir = "td3/"
+from td3.agent import Agent
+#from ddpg.agent import Agent
+#module_dir = "ddpg/"
+module_dir = "td3/"
 
 #script to render the result
 
