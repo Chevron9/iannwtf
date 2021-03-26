@@ -19,6 +19,9 @@ class Agent:
         self.batch_size = batch_size
         self.n_actions = n_actions
         self.noise = noise
+        
+        self.delay = 0 # this governs if we wanna update the actor this step or not
+        self.delay_threshold = 2 #we want to update the actor every x steps
 
         #retrieves the maximum and minimum of the actionvalues
         self.max_action = env.action_space.high[0]
@@ -35,36 +38,54 @@ class Agent:
         self.actor = ActorNetwork(n_actions=n_actions, name='actor', dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
         self.target_actor = ActorNetwork(n_actions=n_actions, name='target_actor',  dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
 
-        self.critic = CriticNetwork(name='critic',  dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
-        self.target_critic = CriticNetwork(name='target_critic', dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
 
 
-        #compile the networks with learningrates
+        # The critics might be better handled in a list, but this might slow down tensorflow performance
+        self.critic1 = CriticNetwork(name='critic1',  dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
+        self.target_critic1 = CriticNetwork(name='target_critic1', dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
+
+        self.critic2 = CriticNetwork(name='critic2',  dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
+        self.target_critic2 = CriticNetwork(name='target_critic2', dense1 = dense1, dense2 = dense2, chkpt_dir=chkpt_dir)
+
+
+        #compile the networks with learning rates
         self.actor.compile(optimizer=Adam(learning_rate=alpha))
         self.target_actor.compile(optimizer=Adam(learning_rate=alpha))
         
-        self.critic.compile(optimizer=Adam(learning_rate=beta))
-        self.target_critic.compile(optimizer=Adam(learning_rate=beta))
+        self.critic1.compile(optimizer=Adam(learning_rate=beta))
+        self.target_critic1.compile(optimizer=Adam(learning_rate=beta))
+
+        self.critic2.compile(optimizer=Adam(learning_rate=beta))
+        self.target_critic2.compile(optimizer=Adam(learning_rate=beta))
 
         self.update_network_parameters(tau=1) #Hard copy, since this is the initialization
 
     #updates the target networks
     #soft copies the target and actor network dependent on tau
-    def update_network_parameters(self, tau=None):
+    def update_network_parameters(self, tau=None, delay = False):
         if tau is None:
             tau = self.tau
 
+        if delay:
+            weights = []
+            targets = self.target_actor.weights
+            for i, weight in enumerate(self.actor.weights):
+                weights.append(weight * tau + targets[i]*(1-tau))
+            self.target_actor.set_weights(weights)
+
+
+        # critics copying to target critics
         weights = []
-        targets = self.target_actor.weights
-        for i, weight in enumerate(self.actor.weights):
+        targets = self.target_critic1.weights
+        for i, weight in enumerate(self.critic1.weights):
             weights.append(weight * tau + targets[i]*(1-tau))
-        self.target_actor.set_weights(weights)
+        self.target_critic1.set_weights(weights)
 
         weights = []
-        targets = self.target_critic.weights
-        for i, weight in enumerate(self.critic.weights):
+        targets = self.target_critic2.weights
+        for i, weight in enumerate(self.critic2.weights):
             weights.append(weight * tau + targets[i]*(1-tau))
-        self.target_critic.set_weights(weights)
+        self.target_critic2.set_weights(weights)
 
     #stores the state, action, reward transition
     def remember(self, state, action, reward, new_state, done):
@@ -75,18 +96,22 @@ class Agent:
         print('... saving models ...')
         self.actor.save_weights(self.actor.checkpoint_file)
         self.target_actor.save_weights(self.target_actor.checkpoint_file)
-        self.critic.save_weights(self.critic.checkpoint_file)
-        self.target_critic.save_weights(self.target_critic.checkpoint_file)
+        self.critic1.save_weights(self.critic1.checkpoint_file)
+        self.target_critic1.save_weights(self.target_critic1.checkpoint_file)
+        self.critic2.save_weights(self.critic2.checkpoint_file)
+        self.target_critic2.save_weights(self.target_critic2.checkpoint_file)
 
     #loads models from files
     def load_models(self):
         print('... loading models ...')
         self.actor.load_weights(self.actor.checkpoint_file)
         self.target_actor.load_weights(self.target_actor.checkpoint_file)
-        self.critic.load_weights(self.critic.checkpoint_file)
-        self.target_critic.load_weights(self.target_critic.checkpoint_file)
+        self.critic1.load_weights(self.critic1.checkpoint_file)
+        self.target_critic1.load_weights(self.target_critic1.checkpoint_file)
+        self.critic2.load_weights(self.critic2.checkpoint_file)
+        self.target_critic2.load_weights(self.target_critic2.checkpoint_file)
 
-    #choose_action with help of the actor network, adds noise if it for training
+    #choose_action with help of the actor network, adds noise if it's for training
     @tf.function
     def choose_action(self, observation, evaluate=False):
         state = tf.convert_to_tensor([observation], dtype=tf.float32)
@@ -105,6 +130,10 @@ class Agent:
 
     #learn function of the networks
     def learn(self):
+        # control problem: How to solve this problem? (or: picking policy) -> actor
+        # leads to
+        # prediction problem: Are my actiosn actually getting me closer to accomplishing my goal? (or: value function of policy) -> critic
+
         #starts to learn when there are enough samples to fill a batch
         if self.memory.current_position < self.batch_size:
             return
@@ -122,50 +151,84 @@ class Agent:
         #update critic network
         with tf.GradientTape() as tape:
 
-            #target actor decides which action to take
+            #call target actor to simulate which action to take
             target_actions = self.target_actor(states_)
+
+            # TD3: Add noise regularization to policy
+            # This is achieved by adding "clipped noise"
+            # Noise is clipped to ensure the noisy actions aren't too far from policy.
+            target_actions = target_actions + tf.clip_by_value(np.random.normal(scale=0.2), -0.5, 0.5)
+
+            # Clip again to make sure we aren't violating action space
+            target_actions = tf.clip_by_value(target_actions, self.min_action, self.max_action)
+
+
             #target critic evaluates the value of the actions in the given states
-            critic_value_ = tf.squeeze(self.target_critic(
-                                states_, target_actions), 1)
+            critic1_value_ = tf.squeeze(self.target_critic1(states_, target_actions), 1)
 
             #critic network evaluate the actual states and actions the model took
-            critic_value = tf.squeeze(self.critic(states, actions), 1)
+            critic1_value = tf.squeeze(self.critic1(states, actions), 1)
+
+
+            critic2_value_ = tf.squeeze(self.target_critic2(states_, target_actions), 1)
+            critic2_value = tf.squeeze(self.critic2(states, actions), 1)
 
             #target says what value of the action in a certain state should
             #be like
-            target = rewards + self.gamma*critic_value_*(1-done)
+            target = rewards + self.gamma*tf.math.minimum(critic1_value_,critic2_value_)*(1-done)
 
             #takes the MSE of the target and the actual critic value as the loss
-            critic_loss = keras.losses.MSE(target, critic_value)
+            critic1_loss = keras.losses.MSE(target, critic1_value)
+            critic2_loss = keras.losses.MSE(target, critic2_value)
 
 
         #gets the gradients of the loss in respect to the parameters of the network
-        critic_network_gradient = tape.gradient(critic_loss,
-                                            self.critic.trainable_variables)
+        critic1_network_gradient = tape.gradient(critic1_loss,
+                                            self.critic1.trainable_variables)
+
+        critic2_network_gradient = tape.gradient(critic2_loss,
+                                            self.critic2.trainable_variables)
 
         #aplies the gradients to the critic network
-        self.critic.optimizer.apply_gradients(zip(
-            critic_network_gradient, self.critic.trainable_variables))
+        self.critic1.optimizer.apply_gradients(zip(
+            critic1_network_gradient, self.critic1.trainable_variables))
 
-        #update the actor network
-        with tf.GradientTape() as tape:
-            #gets the policy of the actor in a state
-            action_policy = self.actor(states)
+        self.critic2.optimizer.apply_gradients(zip(
+            critic2_network_gradient, self.critic2.trainable_variables))
 
-            #loss of the actor is the negative value of the critic because we
-            #want to maximize the value but gradient decent minimizes
-            actor_loss = -self.critic(states, action_policy)
+        # The if/else makes sure we only update the actor every second step.
+        if self.delay < (self.delay_threshold-1):
+            self.delay += 1
+            delayBool = True
+        elif self.delay == (self.delay_threshold-1):
+            delayBool = False
+            #update the actor network
+            with tf.GradientTape() as tape:
+                #gets the policy of the actor in a state
+                action_policy = self.actor(states)
 
-            #the loss is a average of all the losses
-            actor_loss = tf.math.reduce_mean(actor_loss)
+                #loss of the actor is the negative value of the critic because we
+                #want to maximize the value but gradient descent minimizes
+                # We are using Critic1 Loss here, as this is how it's done in the original paper.
+                
+                # It would be interesting to plot how c1 and c2 loss differ over time.
 
-        #gradients of the loss in respect to the parameters of the actor network
-        actor_network_gradient = tape.gradient(actor_loss,
-                                    self.actor.trainable_variables)
+                actor_loss = -(self.critic1(states, action_policy))
+
+                #the loss is a average of all the losses
+                actor_loss = tf.math.reduce_mean(actor_loss)
+
+            #gradients of the loss in respect to the parameters of the actor network
+            actor_network_gradient = tape.gradient(actor_loss,
+                                        self.actor.trainable_variables)
 
 
-        #optimizing the network gradients
-        self.actor.optimizer.apply_gradients(zip(
-            actor_network_gradient, self.actor.trainable_variables))
+            #optimizing the network gradients
+            self.actor.optimizer.apply_gradients(zip(
+                actor_network_gradient, self.actor.trainable_variables))
 
-        self.update_network_parameters()
+            self.delay = 0
+        else:
+            raise Exception(f"Delay has been set incorrectly. Delay is {self.delay}, Threshold is {self.threshold}.")
+
+        self.update_network_parameters(delay=delayBool)

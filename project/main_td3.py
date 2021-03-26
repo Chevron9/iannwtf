@@ -18,10 +18,31 @@ from utilities.time_converter import timespan_format
 
 
 
+# TD3 is an improvement on DDPG
+
+# Actor network only updated every 2 steps
+
+# 2 separate critic networks (and a target network for each of them)
+
+
+# target policy smoothing
+# TD3 reduces this variance by adding a small amount of random noise to the target and averaging over mini batches. 
+# The range of noise is clipped in order to keep the target value close to the original action.
+
+#TODO: Implement TD3
+
+#TODO: Improve the loading loop, make sure the algorithm remembers what came before
+# adjusting episodes
+# adjusting plots
+# adjusting tensorboard graphs etc
+# statefulness
+
 if __name__ == '__main__':
 
     #for the case you just want to load a previous model
-    load_checkpoint = True
+    load_checkpoint = False
+
+    #TODO maybe add some error handling if no checkpoint to load exists
 
     #Housekeeping variables
     last_score = 0
@@ -34,7 +55,7 @@ if __name__ == '__main__':
     current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
     print(f"\n----------------- Training started at {current_time}. -------------------\ncheckpoint: {load_checkpoint}")
 
-    module_dir = "ddpg/"
+    module_dir = "td3/"
     figure_dir = module_dir+f'plots/'
     figure_file = figure_dir+f'walker{current_time.replace(":","_")}.png'
 

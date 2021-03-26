@@ -1,17 +1,21 @@
 import gym
 import numpy as np
-from .agent import Agent
 
+#from td3.agent import Agent
+from ddpg.agent import Agent
+module_dir = "ddpg/"
+#module_dir = "td3/"
 
 #script to render the result
 
 #environment the agent is in
 env = gym.make('BipedalWalker-v3')
 
+
 observation = env.reset()
 
 agent = Agent(input_dims=env.observation_space.shape, env=env,
-        n_actions=env.action_space.shape[0])
+        n_actions=env.action_space.shape[0], module_dir = module_dir)
 
 #timesteps that are rendered
 timesteps = 300

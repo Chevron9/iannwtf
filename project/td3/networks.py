@@ -43,7 +43,7 @@ class CriticNetwork(keras.Model):
         #denselayer with 1 neuron that gives the estimated q value of the
         #state-action pair
         f3 = 0.003
-        self.q = Dense(1, activation=None, kernel_initializer = tf.keras.initializers.RandomUniform(-f3, f3) ,
+        self.q = Dense(1, activation=None, kernel_initializer = tf.keras.initializers.RandomUniform(-f3, f3),
         bias_initializer = tf.keras.initializers.RandomUniform(-f3, f3),
         kernel_regularizer=tf.keras.regularizers.l2(0.01))
 
@@ -93,8 +93,8 @@ class ActorNetwork(keras.Model):
         #output layer with tanh activation to get an output vector of length actionspace
         #with values between -1 and 1 to fit to the action boundaries
         f3 = 0.003
-        self.mu = Dense(self.n_actions, activation='tanh', kernel_initializer = tf.keras.initializers.RandomUniform(-f3, f3) , bias_initializer
-         = tf.keras.initializers.RandomUniform(-f3, f3))
+        self.mu = Dense(self.n_actions, activation='tanh', kernel_initializer = tf.keras.initializers.RandomUniform(-f3, f3), 
+                        bias_initializer= tf.keras.initializers.RandomUniform(-f3, f3))
 
     @tf.function
     def call(self, state, training = True):
