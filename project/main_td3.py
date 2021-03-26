@@ -40,7 +40,9 @@ from utilities.time_converter import timespan_format
 if __name__ == '__main__':
 
     #for the case you just want to load a previous model
-    load_checkpoint = True
+    load_checkpoint = False
+
+    #TODO maybe add some error handling if no checkpoint to load exists
 
     #Housekeeping variables
     last_score = 0
