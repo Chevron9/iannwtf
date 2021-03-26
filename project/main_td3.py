@@ -18,6 +18,25 @@ from utilities.time_converter import timespan_format
 
 
 
+# TD3 is an improvement on DDPG
+
+# Actor network only updated every 2 steps
+
+# 2 separate critic networks (and a target network for each of them)
+
+
+# target policy smoothing
+# TD3 reduces this variance by adding a small amount of random noise to the target and averaging over mini batches. 
+# The range of noise is clipped in order to keep the target value close to the original action.
+
+#TODO: Implement TD3
+
+#TODO: Improve the loading loop, make sure the algorithm remembers what came before
+# adjusting episodes
+# adjusting plots
+# adjusting tensorboard graphs etc
+# statefulness
+
 if __name__ == '__main__':
 
     #for the case you just want to load a previous model
