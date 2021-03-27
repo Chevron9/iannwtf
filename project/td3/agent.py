@@ -11,7 +11,7 @@ from .networks import ActorNetwork, CriticNetwork
 class Agent:
     def __init__(self, input_dims, alpha=0.001, beta=0.002, env=None,
             gamma=0.99, n_actions=4, max_size=1000000, tau=0.001,
-            dense1=512, dense2=512, batch_size=64, noise=0.3, module_dir = ""):
+            dense1=512, dense2=512, batch_size=128, noise=0.3, module_dir = ""):
 
         #initializing network-parameters
         self.gamma = gamma
@@ -58,7 +58,7 @@ class Agent:
         self.critic2.compile(optimizer=Adam(learning_rate=beta))
         self.target_critic2.compile(optimizer=Adam(learning_rate=beta))
 
-        self.update_network_parameters(tau=1) #Hard copy, since this is the initialization
+        self.update_network_parameters(tau=1, delay = False) #Hard copy, since this is the initialization
 
     #updates the target networks
     #soft copies the target and actor network dependent on tau
@@ -66,7 +66,7 @@ class Agent:
         if tau is None:
             tau = self.tau
 
-        if delay:
+        if not delay:
             weights = []
             targets = self.target_actor.weights
             for i, weight in enumerate(self.actor.weights):
@@ -149,7 +149,7 @@ class Agent:
         actions = tf.convert_to_tensor(action, dtype=tf.float32)
 
         #update critic network
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
 
             #call target actor to simulate which action to take
             target_actions = self.target_actor(states_)

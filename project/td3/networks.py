@@ -22,7 +22,7 @@ class CriticNetwork(keras.Model):
         self.model_name = name
         self.checkpoint_dir = chkpt_dir
         self.checkpoint_file = os.path.join(self.checkpoint_dir,
-                    self.model_name+'_ddpg.h5')
+                    self.model_name+'_td3.h5')
 
         
         #Optimization: using LeakyReLU as per https://arxiv.org/pdf/1709.06560.pdf
@@ -60,7 +60,7 @@ class CriticNetwork(keras.Model):
         return q
 
 
-#critic network that takes the state and outputs a probability
+#actor network that takes the state and outputs a probability
 #distribution over all possible actions
 class ActorNetwork(keras.Model):
     def __init__(self, dense1=512, dense2=512, n_actions=4, name='actor',
@@ -74,7 +74,7 @@ class ActorNetwork(keras.Model):
         self.model_name = name
         self.checkpoint_dir = chkpt_dir
         self.checkpoint_file = os.path.join(self.checkpoint_dir,
-                    self.model_name+'_ddpg.h5')
+                    self.model_name+'_td3.h5')
 
         #first dense layer
         f1 = 1. / np.sqrt(self.dense1)

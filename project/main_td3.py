@@ -12,9 +12,12 @@ import numpy as np
 import time
 
 # modules
-from ddpg.agent import Agent
+from td3.agent import Agent
+
 from utilities.plot import plot_learning_curve
 from utilities.time_converter import timespan_format
+
+module_dir = "td3/"
 
 
 
@@ -55,7 +58,7 @@ if __name__ == '__main__':
     current_time = time.strftime("%Y-%m-%d-%H:%M:%S", t)
     print(f"\n----------------- Training started at {current_time}. -------------------\ncheckpoint: {load_checkpoint}")
 
-    module_dir = "td3/"
+
     figure_dir = module_dir+f'plots/'
     figure_file = figure_dir+f'walker{current_time.replace(":","_")}.png'
 
@@ -159,6 +162,8 @@ if __name__ == '__main__':
             current_time = time.strftime("%H:%M:%S", t_new)
             t_delta = time.mktime(t_new)-time.mktime(t)
             t = t_new
+            
+            # perhaps add a decaying factor for ETA
             avg_delta.append(t_delta)
             avg_delta_mean = np.mean(avg_delta)
             avg_delta_std = np.var(avg_delta)
@@ -185,6 +190,7 @@ if __name__ == '__main__':
 
             with writer.as_default():
                 tf.summary.scalar('Average Score', avg_score, step=i)
+                tf.summary.scalar('Score', score, step=i)
                 tf.summary.scalar('ETA', ETA_avg, step=i)
                 tf.summary.scalar('Calculation time per step', per_step, step=i)
                 tf.summary.scalar('Calculation time per episode', t_delta, step=i)
