@@ -43,7 +43,7 @@ module_dir = "td3/"
 if __name__ == '__main__':
 
     #for the case you just want to load a previous model
-    load_checkpoint = False
+    load_checkpoint = True
 
     #TODO maybe add some error handling if no checkpoint to load exists
 
@@ -71,8 +71,8 @@ if __name__ == '__main__':
     #initialize the environment for the agent and initialize the agent
     
     #tf.debugging.set_log_device_placement(True)
-    env = gym.make('BipedalWalker-v3')
-    #env = gym.make('BipedalWalkerHardcore-v3')
+    #env = gym.make('BipedalWalker-v3')
+    env = gym.make('BipedalWalkerHardcore-v3')
 
 
     n_actions = env.action_space.shape[0]
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         n_steps = 0
         while n_steps <= agent.batch_size:
             observation = env.reset()
-            action = env.action_space.sample()
+            action = agent.choose_action(observation, evaluate = True)
             observation_, reward, done, info = env.step(action)
             agent.remember(observation, action, reward, observation_, done)
             n_steps += 1
