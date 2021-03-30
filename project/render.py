@@ -8,8 +8,10 @@ module_dir = "td3/"
 
 #script to render the result
 
+
 #environment the agent is in
-env = gym.make('BipedalWalker-v3')
+env = gym.make('BipedalWalkerHardcore-v3')
+# env = gym.make('BipedalWalker-v3')
 
 
 observation = env.reset()
@@ -18,7 +20,7 @@ agent = Agent(input_dims=env.observation_space.shape, env=env,
         n_actions=env.action_space.shape[0], module_dir = module_dir)
 
 #timesteps that are rendered
-timesteps = 1700
+timesteps = 3000
 
 
 #load the model

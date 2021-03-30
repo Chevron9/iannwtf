@@ -148,7 +148,10 @@ class Agent:
         rewards = tf.convert_to_tensor(reward, dtype=tf.float32)
         actions = tf.convert_to_tensor(action, dtype=tf.float32)
 
-        #update critic network
+        # update critic network
+        # the gradient tape has to be persistent here
+        # otherwise we can't call gradient tape.gradient twice
+        # the downside is that this makes garbage collection less efficient
         with tf.GradientTape(persistent=True) as tape:
 
             #call target actor to simulate which action to take
