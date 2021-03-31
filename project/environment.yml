@@ -1,0 +1,9 @@
+name: environment
+dependencies:
+  - python
+  - pip
+  - numpy
+  - matplotlib
+  - tensorflow
+  - gym
+  - box2d
