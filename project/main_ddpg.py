@@ -21,7 +21,10 @@ from utilities.time_converter import timespan_format
 if __name__ == '__main__':
 
     #for the case you just want to load a previous model
-    load_checkpoint = True
+    load_checkpoint = False
+
+    # enable or disable priority replay
+    prioritize = True
 
     #Housekeeping variables
     last_score = 0
@@ -56,11 +59,14 @@ if __name__ == '__main__':
     noise = 0.4
     # NEW batch 128
     agent = Agent(alpha=0.00005, beta=0.0005, input_dims=env.observation_space.shape, tau=0.001, env=env,
-                  batch_size=128, dense1=512, dense2=512, n_actions=n_actions, noise = noise, module_dir = module_dir)
+                  batch_size=128, dense1=512, dense2=512, n_actions=n_actions, noise = noise, module_dir = module_dir,
+                  prioritize = prioritize)
 
 
     episodes = 5000 #250
-
+    
+    if prioritize:
+        prior_beta_scale = (1-agent.priority_beta)/episodes
 
 
     #set bestscore to minimum
@@ -173,7 +179,8 @@ if __name__ == '__main__':
                     x = [j+1 for j in range(current_episode+1)]
                     plot_learning_curve(x, score_history, figure_file)
                 
-
+            if prioritize:
+                agent.priority_beta += prior_beta_scale
 
             
     except KeyboardInterrupt:
