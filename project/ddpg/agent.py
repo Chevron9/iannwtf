@@ -11,7 +11,7 @@ from .networks import ActorNetwork, CriticNetwork
 class Agent:
     def __init__(self, input_dims, alpha=0.001, beta=0.002, env=None,
             gamma=0.99, n_actions=4, max_size=1000000, tau=0.001,
-            dense1=512, dense2=512, batch_size=64, noise=0.3, module_dir = ""):
+            dense1=512, dense2=512, batch_size=64, noise=0.3, module_dir = "", prioritize = False):
 
         #initializing network-parameters
         self.gamma = gamma
@@ -19,13 +19,17 @@ class Agent:
         self.batch_size = batch_size
         self.n_actions = n_actions
         self.noise = noise
+        self.prioritize = prioritize
+        if self.prioritize:
+            self.priority_beta = 0.5
 
         #retrieves the maximum and minimum of the actionvalues
         self.max_action = env.action_space.high[0]
         self.min_action = env.action_space.low[0]
 
         #initializes the Replaybuffer which stores what the agents does
-        self.memory = ReplayBuffer(max_size, input_dims, n_actions)
+        self.memory = ReplayBuffer(max_size, input_dims, n_actions, prioritize=self.prioritize)
+        self.buffer_size = max_size
         
         # initializing the Networks with given parameters
         # target_actor and target_critic are just initialized as the actor and
@@ -110,14 +114,20 @@ class Agent:
             return
 
         #gets batch form memory
-        state, action, reward, new_state, done = \
-                self.memory.sample_buffer(self.batch_size)
+        if self.prioritize:
+            state, action, reward, new_state, done, batch, probs = \
+                    self.memory.sample_buffer(self.batch_size)
+            deltas = np.zeros(self.batch_size)
+        else:
+            state, action, reward, new_state, done = \
+                    self.memory.sample_buffer(self.batch_size)
 
         #convert np arrays to tensors to feed them to the networks
         states = tf.convert_to_tensor(state, dtype=tf.float32)
         states_ = tf.convert_to_tensor(new_state, dtype=tf.float32)
         rewards = tf.convert_to_tensor(reward, dtype=tf.float32)
         actions = tf.convert_to_tensor(action, dtype=tf.float32)
+
 
         #update critic network
         with tf.GradientTape() as tape:
@@ -135,9 +145,19 @@ class Agent:
             #be like
             target = rewards + self.gamma*critic_value_*(1-done)
 
+            if self.prioritize:
+                #print("probs ",probs, len(probs))
+                #print("self.buffer_size ",self.buffer_size)
+                importance = ((np.divide(1,probs))*(1/self.buffer_size))
+                #print("importance ",importance, len(importance))
+                critic_value = critic_value * importance
+
             #takes the MSE of the target and the actual critic value as the loss
             critic_loss = keras.losses.MSE(target, critic_value)
-
+        
+        if self.prioritize:
+            deltas = np.abs(target - critic_value)
+            self.memory.update_memories(batch,deltas)
 
         #gets the gradients of the loss in respect to the parameters of the network
         critic_network_gradient = tape.gradient(critic_loss,

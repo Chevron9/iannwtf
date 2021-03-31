@@ -48,7 +48,7 @@ class CriticNetwork(keras.Model):
         kernel_regularizer=tf.keras.regularizers.l2(0.01))
 
     @tf.function
-    def call(self, state, action, training = True):
+    def call(self, state, action):
         #feeds the network state and action pairs
         action_value = self.dense_layer1(tf.concat([state, action], axis=1))
 
@@ -97,7 +97,7 @@ class ActorNetwork(keras.Model):
          = tf.keras.initializers.RandomUniform(-f3, f3))
 
     @tf.function
-    def call(self, state, training = True):
+    def call(self, state):
 
         actions = self.dense_layer1(state)
         actions = self.dense_layer2(actions)
