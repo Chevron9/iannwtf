@@ -31,7 +31,7 @@ class ReplayBuffer:
         self.terminal_memory[index] = done
         if self.prioritize:
             # self.ranks[index]=(max(self.ranks)+1)
-            self.error[index]=max(self.error)+1
+            self.error[index]=np.inf
             
 
         self.current_position+= 1
@@ -60,10 +60,12 @@ class ReplayBuffer:
             self.p = np.zeros(max_mem)
 
             self.ranks[tmp] = np.arange(max_mem)
-            self.ranks = [x+1 for x in self.ranks]
-            tmp_p = [(1/x) for x in self.ranks]
-            self.p = [x/(np.sum(tmp_p)) for x in tmp_p]
-            self.p = np.asarray(self.p)
+
+            # np is much more performant than list comprehensions
+            self.ranks = np.add(1,self.ranks) # [x+1 for x in self.ranks]
+            tmp_p = np.divide(1,self.ranks)
+            self.p = np.divide(tmp_p,np.sum(tmp_p)) # [x/(np.sum(tmp_p)) for x in tmp_p] 
+            # self.p = np.asarray(self.p)
 
             batch = np.random.choice(max_mem, batch_size, replace=False, p=self.p)
 
