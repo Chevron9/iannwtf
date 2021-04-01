@@ -63,7 +63,7 @@ if __name__ == '__main__':
                   prioritize = prioritize)
 
 
-    episodes = 5000 #250
+    episodes = 4000 #250
     
     if prioritize:
         prior_beta_scale = (1-agent.priority_beta)/episodes
