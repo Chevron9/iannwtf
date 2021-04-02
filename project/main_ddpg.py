@@ -2,7 +2,7 @@ import sys
 print(f"Python version {sys.version}")
 print(sys.path)
 
-import os 
+import os
 print(f"Current working directory is {os.getcwd()}")
 
 import gym
@@ -42,29 +42,29 @@ if __name__ == '__main__':
     figure_file = figure_dir+f'walker{current_time.replace(":","_")}.png'
 
     log_dir = module_dir+'logs/' + current_time.replace(":","_")
-    
-    #Tensorboard writer  
+
+    #Tensorboard writer
     writer = tf.summary.create_file_writer(log_dir)
 
 
     #initialize the environment for the agent and initialize the agent
-    
+
     #tf.debugging.set_log_device_placement(True)
-    env = gym.make('BipedalWalker-v3')
-    #env = gym.make('BipedalWalkerHardcore-v3')
+    #env = gym.make('BipedalWalker-v3')
+    env = gym.make('BipedalWalkerHardcore-v3')
 
 
     n_actions = env.action_space.shape[0]
 
-    noise = 0.4
+    noise = 0.3
     # NEW batch 128
     agent = Agent(alpha=0.00005, beta=0.0005, input_dims=env.observation_space.shape, tau=0.001, env=env,
-                  batch_size=128, dense1=512, dense2=512, n_actions=n_actions, noise = noise, module_dir = module_dir,
+                  batch_size=64, dense1=400, dense2=300, n_actions=n_actions, noise = noise, module_dir = module_dir,
                   prioritize = prioritize)
 
 
-    episodes = 5000 #250
-    
+    episodes = 4000 #250
+
     if prioritize:
         prior_beta_scale = (1-agent.priority_beta)/episodes
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
             observation = env.reset()
             done = False
             score = 0
-            
+
             #regulates the noise over the course of training as exponential
             #decay to get smaller noise at the end, the noise is the
             #standarddeviation of a normal distribution
@@ -159,14 +159,14 @@ if __name__ == '__main__':
             print(f"{current_time} \n"
             f'Episode: **{i+1}**/{episodes}, Score: {score:.0f} (Δ{score-last_score:5.1f})\n'
             f'Average score: {avg_score:.1f} (Δ{avg_score-last_avg_score:5.2f})\n'
-            f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:4.2f}),', 
+            f'Episode time: {t_delta:.1f}s, average: {avg_delta_mean:.1f}s (±{avg_delta_std:4.2f}),',
             f'ETA: {timespan_format(ETA_avg)} ({timespan_format(ETA_min)} to {timespan_format(ETA_max)})\n'
-            f'Steps: {steps}. Time per step: {per_step:.1e}s. Reward per step: {steps_per_score:.2f}.\n' 
+            f'Steps: {steps}. Time per step: {per_step:.1e}s. Reward per step: {steps_per_score:.2f}.\n'
             f'It has been {i - last_save} episode(s) since the model was last saved, with a score of {best_score:.0f} (Δ{avg_score-best_score:2.2f}).\n')
 
             last_score = score
             last_avg_score = avg_score
-            
+
 
             with writer.as_default():
                 tf.summary.scalar('Average Score', avg_score, step=i)
@@ -178,15 +178,15 @@ if __name__ == '__main__':
                     writer.flush()
                     x = [j+1 for j in range(current_episode+1)]
                     plot_learning_curve(x, score_history, figure_file)
-                
+
             if prioritize:
                 agent.priority_beta += prior_beta_scale
 
-            
+
     except KeyboardInterrupt:
         episodes = current_episode
         print("Manually shutting down training.")
-    
+
     #plots the whole score history
     x = [i+1 for i in range(episodes)]
     plot_learning_curve(x, score_history, figure_file)
