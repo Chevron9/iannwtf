@@ -30,13 +30,13 @@ class CriticNetwork(keras.Model):
         #dense layers with kernel and bias initializer(from an other implementation)
         #and relu activation
         f1 = 1. / np.sqrt(self.dense1)
-        self.dense_layer1 = Dense(self.dense1, activation= tf.keras.activations.relu,
+        self.dense_layer1 = Dense(self.dense1, activation= tf.nn.leaky_relu,
         kernel_initializer = tf.keras.initializers.RandomUniform(-f1, f1),
         bias_initializer = tf.keras.initializers.RandomUniform(-f1, f1))
 
 
         f2 = 1. / np.sqrt(self.dense2)
-        self.dense_layer2 = Dense(self.dense2, activation= tf.keras.activations.relu,
+        self.dense_layer2 = Dense(self.dense2, activation= tf.nn.leaky_relu,
         kernel_initializer = tf.keras.initializers.RandomUniform(-f2, f2),
         bias_initializer = tf.keras.initializers.RandomUniform(-f2, f2))
 

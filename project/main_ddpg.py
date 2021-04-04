@@ -24,7 +24,7 @@ if __name__ == '__main__':
     load_checkpoint = False
 
     # enable or disable priority replay
-    prioritize = True
+    prioritize = False
 
     #Housekeeping variables
     last_score = 0
