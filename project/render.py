@@ -1,17 +1,17 @@
 import gym
 import numpy as np
 
-from td3.agent import Agent
-#from ddpg.agent import Agent
-#module_dir = "ddpg/"
-module_dir = "td3/"
+#from td3.agent import Agent
+from ddpg.agent import Agent
+module_dir = "ddpg/"
+#module_dir = "td3/"
 
 #script to render the result
 
 
 #environment the agent is in
-env = gym.make('BipedalWalkerHardcore-v3')
-# env = gym.make('BipedalWalker-v3')
+#env = gym.make('BipedalWalkerHardcore-v3')
+env = gym.make('BipedalWalker-v3')
 
 
 observation = env.reset()

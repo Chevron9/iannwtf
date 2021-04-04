@@ -17,7 +17,7 @@ from td3.agent import Agent
 from utilities.plot import plot_learning_curve
 from utilities.time_converter import timespan_format
 
-module_dir = "td3/"
+module_dir = "td3_hardcore/"
 
 
 
@@ -32,8 +32,6 @@ module_dir = "td3/"
 # TD3 reduces this variance by adding a small amount of random noise to the target and averaging over mini batches. 
 # The range of noise is clipped in order to keep the target value close to the original action.
 
-#TODO: Implement TD3
-
 #TODO: Improve the loading loop, make sure the algorithm remembers what came before
 # adjusting episodes
 # adjusting plots
@@ -43,9 +41,12 @@ module_dir = "td3/"
 if __name__ == '__main__':
 
     #for the case you just want to load a previous model
-    load_checkpoint = True
+    load_checkpoint = False
 
     #TODO maybe add some error handling if no checkpoint to load exists
+
+    # enable or disable priority replay
+    prioritize = False
 
     #Housekeeping variables
     last_score = 0
@@ -71,19 +72,23 @@ if __name__ == '__main__':
     #initialize the environment for the agent and initialize the agent
     
     #tf.debugging.set_log_device_placement(True)
-    #env = gym.make('BipedalWalker-v3')
+    # env = gym.make('BipedalWalker-v3')
     env = gym.make('BipedalWalkerHardcore-v3')
 
 
     n_actions = env.action_space.shape[0]
 
     noise = 0.4
+
     # NEW batch 128
     agent = Agent(alpha=0.00005, beta=0.0005, input_dims=env.observation_space.shape, tau=0.001, env=env,
-                  batch_size=128, dense1=512, dense2=512, n_actions=n_actions, noise = noise, module_dir = module_dir)
+                  batch_size=128, dense1=512, dense2=512, n_actions=n_actions, noise = noise, module_dir = module_dir, prioritize = prioritize)
 
 
     episodes = 5000 #250
+
+    if prioritize:
+        prior_beta_scale = (1-agent.priority_beta)/episodes
 
 
 
@@ -199,6 +204,9 @@ if __name__ == '__main__':
                     writer.flush()
                     x = [j+1 for j in range(current_episode+1)]
                     plot_learning_curve(x, score_history, figure_file)
+
+            if prioritize:
+                agent.priority_beta += prior_beta_scale
                 
 
 

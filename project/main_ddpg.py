@@ -24,7 +24,7 @@ if __name__ == '__main__':
     load_checkpoint = False
 
     # enable or disable priority replay
-    prioritize = True
+    prioritize = False
 
     #Housekeeping variables
     last_score = 0
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
 
     episodes = 4000 #250
-
+    
     if prioritize:
         prior_beta_scale = (1-agent.priority_beta)/episodes
 
