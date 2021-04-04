@@ -1,3 +1,4 @@
+# create environment with "conda env create --file environment.yml"
 name: environment
 dependencies:
   - python
