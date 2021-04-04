@@ -1,10 +1,12 @@
-# create environment with "conda env create --file environment.yml"
+#use conda env create --file environment.yml to creat the environment and use
+#the render.py to show results
 name: environment
 dependencies:
   - python
   - pip
-  - numpy
-  - matplotlib
-  - tensorflow
-  - gym
-  - box2d
+  - pip:
+    - tensorflow
+    - matplotlib
+    - numpy
+    - gym
+    - box2d
